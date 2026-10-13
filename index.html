@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Revision Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eef2f6; --panel:#ffffff; --ink:#14202e; --muted:#5d6b7b; --line:#d9e0e8;
+  --accent:#1a8fd1; --accent-soft:#dff1fb; --doubt:#c2410c; --doubt-soft:#fde8dc; --done:#2f7d4f;
+  --head:"Bricolage Grotesque",system-ui,sans-serif; --body:"Figtree",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1620; --panel:#17212d; --ink:#e6edf5; --muted:#94a3b4; --line:#27343f;
+    --accent-soft:#12324a; --doubt:#fb923c; --doubt-soft:#3a2314; --done:#5fc58a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1620; --panel:#17212d; --ink:#e6edf5; --muted:#94a3b4; --line:#27343f;
+  --accent-soft:#12324a; --doubt:#fb923c; --doubt-soft:#3a2314; --done:#5fc58a;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.rail{padding:28px 18px;border-right:1px solid var(--line);position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;background:var(--panel)}
+.brand{font-family:var(--head);font-weight:700;font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+.dom{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;border-left:5px solid var(--c);transition:background .15s}
+.dom:hover{background:var(--bg)}
+.dom.on{background:var(--bg);border-color:var(--line);border-left-color:var(--c)}
+.dom b{font-family:var(--head);font-size:18px;display:block}
+.dom small{color:var(--muted);font-size:13px}
+.bar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);width:0;transition:width .3s}
+.theme{margin-top:20px;background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--muted);font-size:14px}
+main{padding:32px clamp(16px,4vw,48px) 80px;max-width:980px;width:100%}
+h1{font-family:var(--head);font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0 0 6px;border-left:8px solid var(--accent);padding-left:14px}
+.stat{color:var(--muted);margin:0 0 22px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+.search{flex:1 1 220px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:9px 13px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--accent);color:#fff}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 13px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+summary{cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;font-family:var(--head);font-weight:500;font-size:18px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--accent);margin-right:10px;transition:transform .15s;display:inline-block}
+details[open] summary::before{transform:rotate(90deg)}
+summary span.t{flex:1}
+summary em{font-style:normal;font-family:var(--body);font-size:13px;color:var(--muted)}
+ul{list-style:none;margin:0;padding:0 8px 10px}
+li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px}
+li:hover{background:var(--bg)}
+li label{flex:1;cursor:pointer;display:flex;gap:10px;align-items:center}
+li input{accent-color:var(--accent);width:18px;height:18px;flex:none}
+li.d .tx{color:var(--muted);text-decoration:line-through}
+li.q{background:var(--doubt-soft)}
+.flag{border:0;background:none;cursor:pointer;font-size:18px;opacity:.35;padding:2px 6px;border-radius:6px}
+li:hover .flag,.flag.on,li.q .flag{opacity:1}
+.flag.on{color:var(--doubt)}
+.empty{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.empty b{color:var(--ink);font-family:var(--head);font-size:20px;display:block;margin-bottom:6px}
+.editor{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+.editor textarea{width:100%;min-height:260px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:14px;line-height:1.45}
+.editor p{margin:0 0 10px;color:var(--muted);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:16px 12px;display:flex;gap:8px;overflow-x:auto;flex-wrap:nowrap;align-items:stretch}
+  .brand,.sub,.theme{display:none}
+  .dom{width:auto;min-width:130px;margin:0;flex:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" id="rail" aria-label="Domains"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   HOW TO ADD CONTENT
+   Easiest: open a domain in the page, click "Edit topics", paste your list, Save.
+   Format: a numbered line like "1. Fundamentals" starts a section,
+   every other line is a topic. "[ ]" at the start of a line is ignored.
+   ============================================================ */
+const SNOWFLAKE = `1. Fundamentals and architecture
+[ ] What is Snowflake?
+[ ] Key features and use cases
+[ ] Snowflake vs traditional databases
+[ ] Snowflake vs Databricks
+[ ] Snowflake editions and cloud platforms
+[ ] Snowflake account, organization and regions
+[ ] Snowflake architecture overview
+[ ] Storage, compute and cloud services layers
+[ ] Shared-disk architecture
+[ ] Separation of storage and compute
+[ ] Virtual warehouses and compute resources
+[ ] Columnar storage
+[ ] Micro-partitions
+[ ] Metadata and metadata services
+[ ] Automatic micro-partitioning
+[ ] Compression and storage optimization
+[ ] Query execution lifecycle
+[ ] Snowflake deployment and account basics
+
+2. Snowflake objects and hierarchy
+[ ] Organization and accounts
+[ ] Databases
+[ ] Schemas
+[ ] Tables
+[ ] Views
+[ ] Columns and data types
+[ ] Stages
+[ ] File formats
+[ ] Sequences
+[ ] Streams
+[ ] Tasks
+[ ] Pipes
+[ ] Functions
+[ ] Stored procedures
+[ ] User-defined functions (UDFs)
+[ ] Materialized views
+[ ] Dynamic tables
+[ ] Temporary tables
+[ ] Transient tables
+[ ] Permanent tables
+[ ] External tables
+[ ] Hybrid tables
+[ ] Iceberg tables
+[ ] Directory tables
+[ ] Object naming and fully qualified names
+
+3. SQL fundamentals in Snowflake
+[ ] SELECT and aliases
+[ ] WHERE and filtering
+[ ] ORDER BY and LIMIT
+[ ] DISTINCT
+[ ] GROUP BY and HAVING
+[ ] Aggregate functions
+[ ] String functions
+[ ] Numeric functions
+[ ] Date and time functions
+[ ] NULL handling
+[ ] CASE expressions
+[ ] COALESCE, NVL and IFNULL
+[ ] NULLIF and ZEROIFNULL
+[ ] Type casting: CAST and ::
+[ ] Regular expressions
+[ ] Conditional expressions
+[ ] Set operators: UNION, UNION ALL, INTERSECT, MINUS
+[ ] Subqueries
+[ ] Common table expressions (CTEs)
+[ ] Recursive CTEs
+[ ] Temporary result sets
+[ ] INSERT, UPDATE and DELETE
+[ ] MERGE
+[ ] TRUNCATE and DROP
+[ ] CREATE, ALTER and DESCRIBE
+[ ] Constraints and their enforcement behavior
+[ ] Transactions and COMMIT/ROLLBACK
+
+4. Joins, analytics and advanced SQL
+[ ] INNER JOIN
+[ ] LEFT, RIGHT and FULL OUTER JOIN
+[ ] CROSS JOIN
+[ ] Self join
+[ ] Semi joins and anti joins
+[ ] Join cardinality and duplicate rows
+[ ] Window functions
+[ ] ROW_NUMBER, RANK and DENSE_RANK
+[ ] LAG and LEAD
+[ ] FIRST_VALUE and LAST_VALUE
+[ ] Running totals and moving averages
+[ ] PARTITION BY and window frames
+[ ] QUALIFY
+[ ] PIVOT and UNPIVOT
+[ ] LATERAL joins
+[ ] LATERAL FLATTEN
+[ ] Correlated subqueries
+[ ] Conditional aggregation
+[ ] Deduplication patterns
+[ ] Gaps and islands
+[ ] Top-N per group
+[ ] Change detection
+[ ] SCD Type 1 and Type 2 SQL patterns
+[ ] Querying hierarchical data
+[ ] Recursive data processing
+[ ] Sampling and TABLESAMPLE
+
+5. Data types and semi-structured data
+[ ] Numeric types
+[ ] VARCHAR and text types
+[ ] BOOLEAN
+[ ] DATE, TIME and TIMESTAMP variants
+[ ] BINARY
+[ ] VARIANT
+[ ] OBJECT
+[ ] ARRAY
+[ ] Geospatial and GEOGRAPHY basics
+[ ] JSON ingestion
+[ ] PARSE_JSON and TRY_PARSE_JSON
+[ ] TO_VARIANT and type conversion
+[ ] Path notation and object keys
+[ ] GET and GET_PATH
+[ ] FLATTEN and lateral flattening
+[ ] ARRAY_AGG and OBJECT_AGG
+[ ] OBJECT_CONSTRUCT
+[ ] ARRAY_CONSTRUCT
+[ ] TYPEOF and IS_ARRAY
+[ ] Handling missing keys and JSON nulls
+[ ] Nested arrays and objects
+[ ] Casting semi-structured values
+[ ] Schema evolution in semi-structured data
+[ ] Semi-structured data performance considerations
+
+6. Loading and unloading data
+[ ] Supported data formats
+[ ] CSV, JSON, Parquet, Avro, ORC and XML
+[ ] Internal stages
+[ ] User stages and table stages
+[ ] Named internal stages
+[ ] External stages
+[ ] Amazon S3 integration
+[ ] Azure Blob and ADLS integration
+[ ] Google Cloud Storage integration
+[ ] Storage integrations
+[ ] External ID and trust relationships
+[ ] File format objects
+[ ] PUT and GET commands
+[ ] COPY INTO table
+[ ] COPY INTO location
+[ ] Stage listing and file inspection
+[ ] VALIDATION_MODE
+[ ] VALIDATE function
+[ ] ON_ERROR options
+[ ] FORCE option
+[ ] PURGE option
+[ ] MATCH_BY_COLUMN_NAME
+[ ] Column mapping and transformation during load
+[ ] Metadata columns and file names
+[ ] Load history and COPY_HISTORY
+[ ] Load error troubleshooting
+[ ] File-size and file-count considerations
+[ ] Unload file partitioning and compression
+[ ] Parquet and JSON unloading
+[ ] Snowpipe continuous ingestion
+[ ] Snowpipe Streaming
+[ ] Snowpipe vs COPY INTO
+[ ] Automated ingestion monitoring
+
+7. Roles, users and security (RBAC)
+[ ] Users and authentication
+[ ] Roles and system-defined roles
+[ ] Role hierarchy and inheritance
+[ ] Primary and secondary roles
+[ ] CREATE ROLE
+[ ] GRANT and REVOKE
+[ ] GRANT USAGE on databases and schemas
+[ ] Object-level privileges
+[ ] Future grants
+[ ] All-object grants
+[ ] Ownership and OWNERSHIP privilege
+[ ] Role switching and USE ROLE
+[ ] Role assignment to users
+[ ] Least-privilege principle
+[ ] Managed access schemas
+[ ] Database roles
+[ ] Account roles vs database roles
+[ ] PUBLIC role
+[ ] ACCOUNTADMIN, SECURITYADMIN, SYSADMIN and USERADMIN
+[ ] Custom role design
+[ ] Access control troubleshooting
+[ ] SHOW GRANTS and grants inspection
+[ ] Authentication policies
+[ ] Password and MFA basics
+[ ] Key-pair authentication
+[ ] OAuth and SSO
+[ ] Network policies
+[ ] Session policies
+[ ] Secrets and credentials management
+
+8. Data protection, privacy and governance
+[ ] Secure views
+[ ] Secure UDFs and procedures
+[ ] Dynamic data masking policies
+[ ] Row access policies
+[ ] Tag-based masking
+[ ] Object tagging
+[ ] Sensitive data classification
+[ ] Data metric functions
+[ ] Data quality monitoring
+[ ] Access history
+[ ] Query history for audits
+[ ] Object dependencies and lineage
+[ ] Data retention settings
+[ ] Time Travel
+[ ] Fail-safe
+[ ] Undrop and recovery
+[ ] Zero-copy cloning
+[ ] Database and schema cloning
+[ ] Table cloning
+[ ] Clone consistency and limitations
+[ ] Replication and failover concepts
+[ ] Account usage auditing
+[ ] Privacy and least-privilege practices
+
+9. Performance tuning and query optimization
+[ ] Query Profile
+[ ] Query History
+[ ] EXPLAIN
+[ ] Bytes scanned
+[ ] Partition pruning
+[ ] Micro-partition metadata
+[ ] Clustering keys
+[ ] Automatic Clustering
+[ ] Clustering depth
+[ ] Search Optimization Service
+[ ] Materialized views for performance
+[ ] Warehouse sizing
+[ ] Scaling up vs scaling out
+[ ] Multi-cluster warehouses
+[ ] Warehouse auto-suspend and auto-resume
+[ ] Query acceleration
+[ ] Result cache
+[ ] Warehouse local disk cache
+[ ] Metadata cache and optimization
+[ ] Spilling to local storage
+[ ] Spilling to remote storage
+[ ] Join explosion and join optimization
+[ ] Data skew
+[ ] Aggregation optimization
+[ ] Filter pushdown considerations
+[ ] Reducing unnecessary scans
+[ ] CTE behavior and query structure
+[ ] Large-query troubleshooting
+[ ] Concurrency and queueing
+[ ] Query acceleration service
+[ ] Performance benchmarking
+[ ] Cost vs performance trade-offs
+
+10. Warehouses, compute and cost management
+[ ] CREATE and ALTER WAREHOUSE
+[ ] Warehouse sizes and scaling
+[ ] Standard vs Snowpark-optimized warehouses
+[ ] Auto-suspend and auto-resume
+[ ] Multi-cluster warehouse configuration
+[ ] Min and max clusters
+[ ] Scaling policies
+[ ] Resource monitors
+[ ] Credit consumption
+[ ] Serverless compute costs
+[ ] Warehouse metering
+[ ] Storage costs
+[ ] Cloud services costs
+[ ] Billing and usage views
+[ ] ACCOUNT_USAGE and METERING_HISTORY
+[ ] WAREHOUSE_METERING_HISTORY
+[ ] Query attribution
+[ ] Budget monitoring
+[ ] Cost optimization
+[ ] Idle warehouse prevention
+[ ] Workload isolation
+[ ] Dedicated warehouses for ELT and BI
+
+11. Streams, tasks and CDC
+[ ] Streams fundamentals
+[ ] Standard streams
+[ ] Append-only streams
+[ ] Insert-only streams
+[ ] Stream offsets
+[ ] Change Data Capture (CDC)
+[ ] METADATA$ACTION
+[ ] METADATA$ISUPDATE
+[ ] METADATA$ROW_ID
+[ ] Stream staleness
+[ ] Stream retention and recovery
+[ ] Streams on tables and views
+[ ] Streams on external tables
+[ ] CREATE TASK
+[ ] Scheduled tasks
+[ ] Triggered tasks
+[ ] Task graphs and dependencies
+[ ] Serverless vs warehouse-backed tasks
+[ ] Task execution history
+[ ] SUSPEND and RESUME tasks
+[ ] MERGE-based CDC processing
+[ ] Idempotent processing
+[ ] Exactly-once vs at-least-once design considerations
+[ ] Stream consumption and transactions
+[ ] Streams vs Snowpipe
+[ ] Streams and tasks together
+
+12. Advanced ingestion and pipeline patterns
+[ ] Incremental ELT pipelines
+[ ] Full refresh vs incremental load
+[ ] Watermark-based processing
+[ ] High-watermark management
+[ ] Deduplication during ingestion
+[ ] Late-arriving data
+[ ] Out-of-order events
+[ ] Schema drift
+[ ] Idempotency and retries
+[ ] Backfills and reprocessing
+[ ] Error quarantine tables
+[ ] Audit and control tables
+[ ] File-level reconciliation
+[ ] Source-to-target validation
+[ ] Row-count reconciliation
+[ ] Pipeline observability
+[ ] Dynamic tables
+[ ] Target lag and refresh modes
+[ ] Dynamic tables vs streams and tasks
+[ ] Dynamic tables vs dbt incremental models
+[ ] Dependency management
+[ ] Pipeline recovery design
+
+13. Snowflake programmability and Snowpark
+[ ] SQL UDFs
+[ ] JavaScript UDFs
+[ ] Python UDFs
+[ ] SQL stored procedures
+[ ] JavaScript stored procedures
+[ ] Python stored procedures
+[ ] Snowflake Scripting
+[ ] Variables and control flow
+[ ] Exception handling
+[ ] Loops and cursors
+[ ] EXECUTE IMMEDIATE
+[ ] Dynamic SQL
+[ ] Binds and parameterization
+[ ] Procedure rights: owner vs caller
+[ ] Snowpark architecture
+[ ] Snowpark Python DataFrames
+[ ] DataFrame transformations
+[ ] Actions and execution
+[ ] Snowpark stored procedures
+[ ] Packages and dependency management
+[ ] Stages for code and dependencies
+[ ] External access integrations
+[ ] Secrets and external APIs
+[ ] Python worksheets
+[ ] Cortex and AI functions overview
+
+14. Sharing, collaboration and data exchange
+[ ] Secure data sharing
+[ ] Provider and consumer roles
+[ ] Shares and imported databases
+[ ] Direct shares
+[ ] Reader accounts
+[ ] Listings
+[ ] Marketplace data
+[ ] Private listings
+[ ] Cross-region and cross-cloud sharing
+[ ] Data exchange
+[ ] Secure views for sharing
+[ ] Replication groups
+[ ] Failover groups
+[ ] Database replication
+[ ] Account replication
+[ ] Failover and failback
+[ ] Replication lag
+[ ] Cross-region data considerations
+[ ] Sharing costs and governance
+
+15. Snowflake recovery and reliability
+[ ] Time Travel retention periods
+[ ] AT and BEFORE queries
+[ ] Querying historical table versions
+[ ] UNDROP database, schema and table
+[ ] Cloning historical data
+[ ] Fail-safe behavior
+[ ] Permanent vs transient vs temporary recovery
+[ ] Streams and Time Travel interaction
+[ ] Replication recovery
+[ ] Failover and failback planning
+[ ] Disaster recovery design
+[ ] Recovery point and recovery time objectives
+[ ] Accidental deletion scenarios
+[ ] Recovery limitations and retention constraints
+
+16. Monitoring, metadata and administration
+[ ] SHOW and DESCRIBE commands
+[ ] INFORMATION_SCHEMA
+[ ] ACCOUNT_USAGE schema
+[ ] QUERY_HISTORY
+[ ] LOGIN_HISTORY
+[ ] ACCESS_HISTORY
+[ ] COPY_HISTORY
+[ ] TASK_HISTORY
+[ ] PIPE_USAGE_HISTORY
+[ ] WAREHOUSE_LOAD_HISTORY
+[ ] WAREHOUSE_METERING_HISTORY
+[ ] STORAGE_USAGE
+[ ] TABLE_STORAGE_METRICS
+[ ] OBJECT_DEPENDENCIES
+[ ] GRANTS_TO_ROLES and related views
+[ ] Query tags
+[ ] Session parameters
+[ ] Account parameters
+[ ] Database and schema parameters
+[ ] Event tables and telemetry
+[ ] Alerts
+[ ] Notifications and integrations
+[ ] Snowflake CLI and SQL API basics
+[ ] SnowSQL and connectors
+[ ] Python connector
+[ ] JDBC and ODBC
+[ ] Terraform and infrastructure as code basics
+
+17. Transactions and concurrency
+[ ] ACID concepts in Snowflake
+[ ] BEGIN, COMMIT and ROLLBACK
+[ ] Autocommit
+[ ] Transaction boundaries
+[ ] DDL transaction behavior
+[ ] Statement-level failures
+[ ] Concurrent DML
+[ ] Locking and concurrency behavior
+[ ] Isolation and consistency concepts
+[ ] MERGE concurrency
+[ ] Retry handling
+[ ] Idempotent transaction design
+[ ] Multi-statement transactions
+[ ] Stored procedure transaction behavior
+
+18. Unstructured data and advanced storage
+[ ] Unstructured data concepts
+[ ] Stage files and file URLs
+[ ] Directory tables
+[ ] File metadata
+[ ] Scoped URLs
+[ ] Presigned URLs
+[ ] File access and permissions
+[ ] Document and image processing
+[ ] External tables
+[ ] Apache Iceberg tables
+[ ] Snowflake-managed vs externally managed Iceberg
+[ ] Catalog integrations
+[ ] External volumes
+[ ] Hybrid tables
+[ ] Operational vs analytical workloads
+[ ] Table type selection
+[ ] Storage lifecycle and retention
+
+19. ML, AI and newer platform capabilities
+[ ] Snowpark ML overview
+[ ] Feature engineering
+[ ] Model registry
+[ ] Model inference workflows
+[ ] Cortex AI overview
+[ ] Cortex Search
+[ ] Cortex Analyst
+[ ] LLM functions and document processing
+[ ] Embeddings and vector data
+[ ] Vector similarity search
+[ ] AI-powered SQL workflows
+[ ] External model access and governance
+[ ] Cost, privacy and data security for AI workloads
+[ ] Streamlit in Snowflake basics
+[ ] Snowflake Notebooks
+[ ] Snowflake Native App Framework overview
+[ ] Marketplace applications
+[ ] Platform feature availability by region and edition
+
+20. Interview scenarios and real-world debugging
+[ ] Yesterday 10 million rows, today 8 million
+[ ] Source file arrived but target table is empty
+[ ] COPY INTO loaded zero rows
+[ ] Duplicate records after incremental load
+[ ] A dbt model is slower than expected
+[ ] Unexpected NULLs after transformation
+[ ] Snowflake query spills to remote storage
+[ ] Warehouse credits increased unexpectedly
+[ ] Query stuck in queue
+[ ] Stream becomes stale
+[ ] Task fails or stops running
+[ ] Snowpipe ingestion delay
+[ ] Schema changes break ingestion
+[ ] MERGE inserts and updates incorrectly
+[ ] Time Travel recovery after accidental DELETE
+[ ] Role can see database but cannot query table
+[ ] Future table privileges are missing
+[ ] Incorrect row counts between source and target
+[ ] Late-arriving updates corrupt SCD Type 2
+[ ] Pipeline retries create duplicates
+[ ] Choosing between streams/tasks and dynamic tables
+[ ] Choosing table type and warehouse size
+[ ] Explaining an architecture end to end`;
+
+const DOMAINS = [
+  {id:"snowflake", name:"Snowflake", color:"#1a8fd1", blurb:"Warehouse, SQL, pipelines, governance", raw:SNOWFLAKE},
+  {id:"dbt",       name:"dbt",       color:"#e8590c", blurb:"Models, tests, incremental, macros", raw:""},
+  {id:"databricks",name:"Databricks",color:"#d6323d", blurb:"Lakehouse, Delta, workflows",       raw:""},
+  {id:"pyspark",   name:"PySpark",   color:"#c98a00", blurb:"DataFrames, joins, tuning",         raw:""}
+];
+
+/* ---------- storage (safe) ---------- */
+const store = {
+  get(k, fb){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; }catch(e){ return fb; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let state  = store.get("rv_state", {});       // {domain: {key: "d"|"q"}}
+let custom = store.get("rv_custom", {});      // {domain: rawText}
+let ui = { domain: store.get("rv_domain","snowflake"), q:"", filter:"all", editing:false, open:{} };
+if(!DOMAINS.some(d=>d.id===ui.domain)) ui.domain = DOMAINS[0].id;
+
+/* ---------- parsing ---------- */
+function parse(raw){
+  const sections = []; let cur = null;
+  (raw||"").split(/\r?\n/).forEach(line=>{
+    const t = line.trim(); if(!t) return;
+    const h = t.match(/^\d+\.\s+(.+)$/);
+    if(h){ cur = {title:h[1].trim(), topics:[]}; sections.push(cur); return; }
+    const topic = t.replace(/^\[[ xX]?\]\s*/, "").replace(/^[-*•]\s+/, "").trim();
+    if(!topic) return;
+    if(!cur){ cur = {title:"Topics", topics:[]}; sections.push(cur); }
+    cur.topics.push(topic);
+  });
+  return sections;
+}
+const rawFor = d => (custom[d.id] !== undefined ? custom[d.id] : d.raw);
+const keyOf = (sec, topic) => sec + "||" + topic;
+const getSt = (d, k) => (state[d] && state[d][k]) || "";
+function setSt(d, k, v){
+  state[d] = state[d] || {};
+  if(v) state[d][k] = v; else delete state[d][k];
+  store.set("rv_state", state);
+}
+function counts(d){
+  const secs = parse(rawFor(d)); let total=0, done=0, doubt=0;
+  secs.forEach(s=>s.topics.forEach(t=>{ total++; const v=getSt(d.id,keyOf(s.title,t)); if(v==="d")done++; if(v==="q")doubt++; }));
+  return {total, done, doubt};
+}
+
+/* ---------- render ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderRail(){
+  $("rail").innerHTML = '<p class="brand">Revision Hub</p><p class="sub">Pick a domain, revise, flag doubts.</p>' +
+    DOMAINS.map(d=>{
+      const c = counts(d), pct = c.total ? Math.round(c.done/c.total*100) : 0;
+      return `<button class="dom ${d.id===ui.domain?"on":""}" style="--c:${d.color}" data-id="${d.id}">
+        <b>${d.name}</b><small>${c.total ? c.done+" / "+c.total+" revised" : "No topics yet"}</small>
+        <div class="bar"><i style="width:${pct}%"></i></div></button>`;
+    }).join("") + '<button class="theme" id="themeBtn">Toggle theme</button>';
+  $("rail").querySelectorAll(".dom").forEach(b=>b.onclick=()=>{
+    ui.domain=b.dataset.id; ui.q=""; ui.filter="all"; ui.editing=false; store.set("rv_domain",ui.domain); render();
+  });
+  $("themeBtn").onclick=()=>{
+    const root=document.documentElement;
+    const dark = root.dataset.theme==="dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+    root.dataset.theme = dark ? "light" : "dark";
+  };
+}
+
+function renderMain(){
+  const d = DOMAINS.find(x=>x.id===ui.domain);
+  document.documentElement.style.setProperty("--accent", d.color);
+  document.documentElement.style.setProperty("--accent-soft", d.color+"22");
+  document.title = d.name + " · Revision Hub";
+  const secs = parse(rawFor(d)), c = counts(d);
+  let h = `<h1>${d.name}</h1><p class="stat">${c.total} topics · ${c.done} revised · ${c.doubt} flagged as doubt</p>`;
+
+  if(ui.editing || !c.total){
+    h += `<div class="editor"><p>${c.total ? "Edit the list." : "No topics for "+d.name+" yet."} Paste your topics here. A line like <b>1. Section name</b> starts a section, every other line is a topic.</p>
+      <textarea id="ta" spellcheck="false" placeholder="1. Fundamentals&#10;What is ${esc(d.name)}?&#10;Key features and use cases&#10;&#10;2. Core concepts&#10;...">${esc(rawFor(d))}</textarea>
+      <div class="row"><button class="btn pri" id="saveBtn">Save topics</button>
+      ${c.total ? '<button class="btn" id="cancelBtn">Cancel</button>' : ""}
+      ${d.raw ? '<button class="btn" id="resetBtn">Restore original</button>' : ""}</div></div>`;
+  }
+  if(c.total && !ui.editing){
+    h += `<div class="tools"><input class="search" id="search" type="search" placeholder="Search ${d.name} topics" value="${esc(ui.q)}" aria-label="Search topics">
+      <div class="seg" role="group" aria-label="Filter">${[["all","All"],["todo","To revise"],["q","Doubts"],["d","Done"]].map(f=>`<button data-f="${f[0]}" class="${ui.filter===f[0]?"on":""}">${f[1]}</button>`).join("")}</div>
+      <button class="btn" id="toggleAll">Expand / collapse</button>
+      <button class="btn" id="editBtn">Edit topics</button></div><div id="list"></div>`;
+  }
+  $("main").innerHTML = h;
+  if(c.total && !ui.editing) renderList(d, secs);
+  wire(d);
+}
+
+function renderList(d, secs){
+  const q = ui.q.trim().toLowerCase();
+  let html = "", shown = 0;
+  secs.forEach((s,i)=>{
+    const items = s.topics.filter(t=>{
+      const v = getSt(d.id,keyOf(s.title,t));
+      if(q && !t.toLowerCase().includes(q) && !s.title.toLowerCase().includes(q)) return false;
+      if(ui.filter==="todo") return v!=="d";
+      if(ui.filter==="q") return v==="q";
+      if(ui.filter==="d") return v==="d";
+      return true;
+    });
+    if(!items.length) return;
+    shown += items.length;
+    const doneN = s.topics.filter(t=>getSt(d.id,keyOf(s.title,t))==="d").length;
+    const open = (q || ui.filter!=="all" || ui.open[d.id+i]) ? "open" : "";
+    html += `<details ${open} data-i="${i}"><summary><span class="t">${esc(s.title)}</span><em>${doneN}/${s.topics.length}</em></summary><ul>` +
+      items.map(t=>{
+        const k = keyOf(s.title,t), v = getSt(d.id,k);
+        return `<li class="${v}"><label><input type="checkbox" data-k="${esc(k)}" ${v==="d"?"checked":""}><span class="tx">${esc(t)}</span></label>
+          <button class="flag ${v==="q"?"on":""}" data-k="${esc(k)}" title="Mark as doubt" aria-label="Mark as doubt" aria-pressed="${v==="q"}">⚑</button></li>`;
+      }).join("") + `</ul></details>`;
+  });
+  $("list").innerHTML = shown ? html : `<div class="empty"><b>Nothing here</b>No topics match this search or filter.</div>`;
+  $("list").querySelectorAll("details").forEach(el=>el.addEventListener("toggle",()=>{ ui.open[d.id+el.dataset.i]=el.open; }));
+  $("list").querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.onchange=()=>{
+    setSt(d.id, cb.dataset.k, cb.checked ? "d" : ""); refresh(d);
+  });
+  $("list").querySelectorAll(".flag").forEach(b=>b.onclick=()=>{
+    setSt(d.id, b.dataset.k, getSt(d.id,b.dataset.k)==="q" ? "" : "q"); refresh(d);
+  });
+}
+
+function refresh(d){ // keep scroll + search focus while updating
+  const y = window.scrollY; renderRail(); renderMain(); window.scrollTo(0,y);
+}
+
+function wire(d){
+  const s = $("search");
+  if(s) s.oninput = e => { ui.q = e.target.value; renderList(d, parse(rawFor(d))); };
+  document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ ui.filter=b.dataset.f; renderMain(); });
+  const ta = $("toggleAll");
+  if(ta) ta.onclick = () => {
+    const ds = document.querySelectorAll("#list details");
+    const anyClosed = [...ds].some(x=>!x.open);
+    ds.forEach(x=>{ x.open = anyClosed; });
+  };
+  const eb = $("editBtn"); if(eb) eb.onclick = () => { ui.editing = true; renderMain(); };
+  const cb = $("cancelBtn"); if(cb) cb.onclick = () => { ui.editing = false; renderMain(); };
+  const sb = $("saveBtn"); if(sb) sb.onclick = () => {
+    custom[d.id] = $("ta").value; store.set("rv_custom", custom); ui.editing=false; renderRail(); renderMain();
+  };
+  const rb = $("resetBtn"); if(rb) rb.onclick = () => {
+    delete custom[d.id]; store.set("rv_custom", custom); ui.editing=false; renderRail(); renderMain();
+  };
+}
+
+function render(){ renderRail(); renderMain(); }
+render();
+</script>
+</body>
+</html>
